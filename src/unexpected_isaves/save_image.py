@@ -72,6 +72,7 @@ def to_excel(
         row, col = divmod(i, width + 1)
         # OpenPyxl colours work in a weird way
         colour_str = "%02x%02x%02x" % colour
+        cell = ws.cell(row=row, column=col)
         cell.fill = styles.PatternFill(start_color=colour_str, end_color=colour_str, fill_type="solid")
 
 
