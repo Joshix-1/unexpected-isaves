@@ -6,7 +6,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from openpyxl import load_workbook, styles, utils
+from openpyxl import load_workbook, styles, utils, Workbook
 from PIL import Image
 
 
