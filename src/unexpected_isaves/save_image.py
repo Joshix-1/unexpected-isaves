@@ -3,6 +3,7 @@ import os
 from contextlib import suppress
 from functools import cache
 from math import sqrt
+from pathlib import Path
 from typing import Tuple, Union
 
 import numpy as np
@@ -89,7 +90,7 @@ def to_excel(
             ]
         )
 
-    ws.title = image_name
+    ws.title = Path(path).name
 
     # Saves spreadsheet already zoomed in or out
     ws.sheet_view.zoomScale = spreadsheet_kwargs.get("zoom_scale", 20)
