@@ -1,12 +1,14 @@
 import json
 import os
 from contextlib import suppress
+from functools import cache
 from math import sqrt
 from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook, styles, utils, Workbook
+from openpyxl.cell import WriteOnlyCell
 from PIL import Image
 
 
@@ -68,13 +70,24 @@ def to_excel(
             utils.get_column_letter(col)
         ].width = column_width
 
-    for i, colour in enumerate(image.getdata(), 1):
-        row, col = divmod(i, width + 1)
-        # OpenPyxl colours work in a weird way
-        colour_str = "%02x%02x%02x" % colour
-        cell = ws.cell(row=row, column=col)
-        cell.fill = styles.PatternFill(start_color=colour_str, end_color=colour_str, fill_type="solid")
+    @cache
+    def create_fill(colur: str) -> styles.PatternFill:
+        return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
 
+    def create_cell(colour: "tuple[int, int, int]") -> WriteOnlyCell:
+        cell = WriteOnlyCell(ws)
+        cell.fill = create_fill("%02x%02x%02x" % colour)
+        return cell
+
+
+    colour_data = iter(image.getdata())
+    for _ in range(height):
+        ws.append(
+            [
+                create_cell(next(colour_data))
+                for _ in range(width)
+            ]
+        )
 
     ws.title = image_name
 
