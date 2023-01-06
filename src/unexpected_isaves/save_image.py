@@ -59,17 +59,17 @@ def to_excel(
     row_height = spreadsheet_kwargs.get("row_height", 15)
     column_width = spreadsheet_kwargs.get("column_width", 2.3)
 
-    for row in range(height):
+    for row in range(1, 1 + height):
         ws.append([None for _ in range(width)])
         ws.row_dimensions[row].height = row_height
     
-    for col in range(width):
+    for col in range(1, 1 + width):
         ws.column_dimensions[
             utils.get_column_letter(col)
         ].width = column_width
 
-    for i, colour in image.getdata():
-        row, col = divmod(i, width)
+    for i, colour in enumerate(image.getdata(), 1):
+        row, col = divmod(i, width + 1)
         # OpenPyxl colours work in a weird way
         colour_str = "%02x%02x%02x" % colour
         cell.fill = styles.PatternFill(start_color=colour_str, end_color=colour_str, fill_type="solid")
