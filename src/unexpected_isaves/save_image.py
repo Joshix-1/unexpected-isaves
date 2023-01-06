@@ -90,7 +90,7 @@ def to_excel(
             ]
         )
 
-    ws.title = Path(path).name
+    ws.title = Path(path).stem
 
     # Saves spreadsheet already zoomed in or out
     ws.sheet_view.zoomScale = spreadsheet_kwargs.get("zoom_scale", 20)
