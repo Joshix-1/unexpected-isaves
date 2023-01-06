@@ -2,7 +2,7 @@ import json
 import os
 from contextlib import suppress
 from math import sqrt
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -12,9 +12,8 @@ from PIL import Image
 
 def to_excel(
     image: Image,
-    path: str,
+    path: Union[str, os.PathLike],
     lower_image_size_by: int = 10,
-    image_position: Tuple[int, int] = (0, 0),
     **spreadsheet_kwargs,
 ) -> None:
     """
@@ -30,7 +29,6 @@ def to_excel(
     * :param lower_image_size_by: A factor that the function will divide
     your image's dimensions by. Defaults to `10`;
        * It is very important that you lower your image's dimensions because a big image might take the function a long time to process plus your spreadsheet will probably take a long time to load on any software that you use to open it;
-    * :param image_position: a tuple determining the position of the top leftmost pixel. Cannot have negative values.
     * :param **spreadsheet_kwargs: See below.
 
     ## Spreadsheet Kwargs
@@ -45,62 +43,39 @@ def to_excel(
     ## Return
     * :return: `None`, but outputs a `.xlsx` file on the given `path`.
     """
-    image_position_row = image_position[0]
-    image_position_col = image_position[1]
-    if image_position_row > 0:
-        image_position_row -= 1
-    if image_position_col > 0:
-        image_position_col -= 1
-    if image_position_row < 0 or image_position_col < 0:
-        raise ValueError("image_position cannot have negative values.")
+    if lower_image_size_by > 1:
+        image.resize(
+            (
+                image.size[0] // lower_image_size_by,
+                image.size[1] // lower_image_size_by,
+            )
+        )
 
     image = image.convert("RGB")
-    image = image.resize(
-        (image.size[0] // lower_image_size_by, image.size[1] // lower_image_size_by)
-    )
-    # OpenPyxl colors work in a weird way
-    image_colors_processed = [
-        ["%02x%02x%02x" % tuple(item) for item in row]
-        for row in np.array(image).tolist()
-    ]
+    width, height = image.size
+    wb = Workbook(write_only=True)
+    ws = wb.create_sheet()
 
-    df = pd.DataFrame(image_colors_processed)
-    image_name = os.path.splitext(os.path.split(path)[1])[0]
+    row_height = spreadsheet_kwargs.get("row_height", 15)
+    column_width = spreadsheet_kwargs.get("column_width", 2.3)
 
-    # Saving a DataFrame where each cell has a text corresponding to the RGB color its background should be
-    df.to_excel(
-        path,
-        index=False,
-        header=False,
-        startrow=image_position_row,
-        startcol=image_position_col,
-    )
+    for row in range(height):
+        ws.append([None for _ in range(width)])
+        ws.row_dimensions[row].height = row_height
+    
+    for col in range(width):
+        ws.column_dimensions[
+            utils.get_column_letter(col)
+        ].width = column_width
 
-    # Loading the excel file, painting each cell with its color and saving the updates
-    wb = load_workbook(path)
+    for i, colour in image.getdata():
+        row, col = divmod(i, width)
+        # OpenPyxl colours work in a weird way
+        colour_str = "%02x%02x%02x" % colour
+        cell.fill = styles.PatternFill(start_color=colour_str, end_color=colour_str, fill_type="solid")
 
-    ws = wb.active
+
     ws.title = image_name
-
-    for row in range(1, df.shape[0] + 1):
-        for col in range(1, df.shape[1] + 1):
-            cell = ws.cell(
-                row=row + image_position_row, column=col + image_position_col
-            )
-            # Makes cells squared
-            ws.row_dimensions[row + image_position_row].height = spreadsheet_kwargs.get(
-                "row_height", 15
-            )
-            ws.column_dimensions[
-                utils.get_column_letter(col + image_position_col)
-            ].width = spreadsheet_kwargs.get("column_width", 2.3)
-
-            # Painting the cell
-            cell.fill = styles.PatternFill(
-                start_color=cell.value, end_color=cell.value, fill_type="solid"
-            )
-            if spreadsheet_kwargs.get("delete_cell_value", True):
-                cell.value = None  # Deletes the text from the cell
 
     # Saves spreadsheet already zoomed in or out
     ws.sheet_view.zoomScale = spreadsheet_kwargs.get("zoom_scale", 20)
