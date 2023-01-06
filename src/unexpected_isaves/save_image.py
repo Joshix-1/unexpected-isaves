@@ -72,7 +72,7 @@ def to_excel(
         ].width = column_width
 
     @cache
-    def create_fill(colur: str) -> styles.PatternFill:
+    def create_fill(colour: str) -> styles.PatternFill:
         return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
 
     def create_cell(colour: "tuple[int, int, int]") -> WriteOnlyCell:
