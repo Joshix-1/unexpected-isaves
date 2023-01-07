@@ -9,7 +9,7 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook, styles, utils, Workbook
-from openpyxl.cell import WriteOnlyCell
+from openpyxl.cell import Cell, WriteOnlyCell
 from PIL import Image
 
 
@@ -67,12 +67,14 @@ def to_excel(
     row_height = spreadsheet_kwargs.get("row_height", 15)
     column_width = spreadsheet_kwargs.get("column_width", 2.3)
 
-    def create_fill(colour: str) -> styles.PatternFill:
+    @cache
+    def create_fill(colour_tuple: "tuple[int, int, int]") -> styles.PatternFill:
+        colour = "%02x%02x%02x" % colour_tuple
         return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
 
-    def create_cell(colour: "tuple[int, int, int]") -> WriteOnlyCell:
+    def create_cell(colour: "tuple[int, int, int]") -> Cell:
         cell = WriteOnlyCell(ws)
-        cell.fill = create_fill("%02x%02x%02x" % colour)
+        cell.fill = create_fill(colour)
         return cell
 
     colour_data = iter(image.getdata())
