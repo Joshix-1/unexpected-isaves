@@ -9,7 +9,7 @@ from typing import Tuple, Union
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook, styles, utils, Workbook
-from openpyxl.cell import Cell, WriteOnlyCell
+from openpyxl.cell import Cell
 from PIL import Image
 
 
@@ -72,26 +72,22 @@ def to_excel(
         colour = "%02x%02x%02x" % colour_tuple
         return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
 
-    def create_cell(colour: "tuple[int, int, int]") -> Cell:
-        cell = WriteOnlyCell(ws)
+    def create_cell(
+        colour: "tuple[int, int, int]", row: int, column: int
+    ) -> Cell:
+        cell = Cell(ws, row=row, column=column)
         cell.fill = create_fill(colour)
         return cell
 
     colour_data = iter(image.getdata())
-    for _ in range(height):
-        ws.append(
-            [
-                create_cell(next(colour_data))
-                for _ in range(width)
-            ]
-        )
-
+    ws._current_row = 0
     for row in range(1, 1 + height):
-        ws.append([None for _ in range(width)])
+        for col in range(1, 1 + width):
+            ws._cells[(row, col)] = create_cell(next(colour_data), row, col)
+            if row == height:
+                ws.column_dimensions[utils.get_column_letter(col)].width = column_width
+        ws._current_row = row
         ws.row_dimensions[row].height = row_height
-
-    for col in range(1, 1 + width):
-        ws.column_dimensions[utils.get_column_letter(col)].width = column_width
 
     ws.title = Path(path).stem
 
