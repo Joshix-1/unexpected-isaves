@@ -31,7 +31,9 @@ def to_excel(
     Example: `/home/user/Documents/my_image.xlsx`;
     * :param lower_image_size_by: A factor that the function will divide
     your image's dimensions by. Defaults to `10`;
-       * It is very important that you lower your image's dimensions because a big image might take the function a long time to process plus your spreadsheet will probably take a long time to load on any software that you use to open it;
+       * It is very important that you lower your image's dimensions because a big image might take the function a
+       long time to process plus your spreadsheet will probably take a long time to load on any software that you use
+       to open it;
     * :param **spreadsheet_kwargs: See below.
 
     ## Spreadsheet Kwargs
@@ -39,9 +41,12 @@ def to_excel(
 
     * :param row_height (`float`): the rows' height. Defaults to `15`;
     * :param column_width (`float`): the columns' width. Defaults to `2.3`;
-       * The default values on `row_height` and `column_width` were specifically thought out so that they make the cells squared, however - as any hardcoded value - they might not do the trick on your device. That is when you might want to tweak them a little bit.
+       * The default values on `row_height` and `column_width` were specifically thought out so that they make the
+       cells squared, however - as any hardcoded value - they might not do the trick on your device. That is when you
+       might want to tweak them a little bit.
     * :param delete_cell_value (`bool`): wheter to keep or not the text corresponding to that color. Defaults to `True`;
-    * :param zoom_scale (`int`): how much to zoom in or out on the spreadsheet. Defaults to `20` which seems to be the default max zoom out on most spreadsheet softwares.
+    * :param zoom_scale (`int`): how much to zoom in or out on the spreadsheet. Defaults to `20` which seems to be
+    the default max zoom out on most spreadsheet softwares.
 
     ## Return
     * :return: `None`, but outputs a `.xlsx` file on the given `path`.
@@ -62,16 +67,6 @@ def to_excel(
     row_height = spreadsheet_kwargs.get("row_height", 15)
     column_width = spreadsheet_kwargs.get("column_width", 2.3)
 
-    for row in range(1, 1 + height):
-        ws.append([None for _ in range(width)])
-        ws.row_dimensions[row].height = row_height
-    
-    for col in range(1, 1 + width):
-        ws.column_dimensions[
-            utils.get_column_letter(col)
-        ].width = column_width
-
-    @cache
     def create_fill(colour: str) -> styles.PatternFill:
         return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
 
@@ -79,7 +74,6 @@ def to_excel(
         cell = WriteOnlyCell(ws)
         cell.fill = create_fill("%02x%02x%02x" % colour)
         return cell
-
 
     colour_data = iter(image.getdata())
     for _ in range(height):
@@ -89,6 +83,13 @@ def to_excel(
                 for _ in range(width)
             ]
         )
+
+    for row in range(1, 1 + height):
+        ws.append([None for _ in range(width)])
+        ws.row_dimensions[row].height = row_height
+
+    for col in range(1, 1 + width):
+        ws.column_dimensions[utils.get_column_letter(col)].width = column_width
 
     ws.title = Path(path).stem
 
