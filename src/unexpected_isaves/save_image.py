@@ -69,8 +69,7 @@ def to_excel(
 
     @cache
     def create_fill(colour_tuple: "tuple[int, int, int]") -> styles.PatternFill:
-        colour = "%02x%02x%02x" % colour_tuple
-        return styles.PatternFill(start_color=colour, end_color=colour, fill_type="solid")
+        return styles.PatternFill(start_color="%02x%02x%02x" % colour_tuple, fill_type="solid")
 
     def create_cell(
         colour: "tuple[int, int, int]", row: int, column: int
